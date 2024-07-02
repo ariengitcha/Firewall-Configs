@@ -1,10 +1,9 @@
 import requests
 from requests.auth import HTTPBasicAuth
-import json
+import os
 
-# Replace 'your_github_username' and 'your_github_token' with your GitHub username and token.
-GITHUB_USERNAME = 'ariengitcha'
-GITHUB_TOKEN = 'test'
+GITHUB_USERNAME = os.getenv('GITHUB_USERNAME')
+GIT_TOKEN = os.getenv('GIT_TOKEN')
 SEARCH_QUERY = 'firewall config'
 SEARCH_URL = 'https://api.github.com/search/code'
 RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
@@ -17,7 +16,7 @@ def search_github(query, per_page=RESULTS_PER_PAGE):
         'q': query,
         'per_page': per_page,
     }
-    response = requests.get(SEARCH_URL, headers=headers, params=params, auth=HTTPBasicAuth(GITHUB_USERNAME, GITHUB_TOKEN))
+    response = requests.get(SEARCH_URL, headers=headers, params=params, auth=HTTPBasicAuth(GITHUB_USERNAME, GIT_TOKEN))
     if response.status_code == 200:
         return response.json()
     else:
