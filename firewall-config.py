@@ -3,8 +3,8 @@ from requests.auth import HTTPBasicAuth
 import json
 
 # Replace 'your_github_username' and 'your_github_token' with your GitHub username and token.
-GITHUB_USERNAME = 'your_github_username'
-GITHUB_TOKEN = 'your_github_token'
+GITHUB_USERNAME = 'ariengitcha'
+GITHUB_TOKEN = 'test'
 SEARCH_QUERY = 'firewall config'
 SEARCH_URL = 'https://api.github.com/search/code'
 RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
