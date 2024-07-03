@@ -31,4 +31,4 @@ jobs:
         EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
       run: |
-        python search_firewall_configs.py
+        python firewall-configs.py
