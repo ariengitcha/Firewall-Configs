@@ -1,4 +1,4 @@
-name: Search Firewall Configs
+name: Search and Send Firewall Config URLs
 
 on:
   push:
@@ -28,5 +28,7 @@ jobs:
       env:
         GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
         GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+        EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
       run: |
-        python firewall-config.py
+        python search_firewall_configs.py
