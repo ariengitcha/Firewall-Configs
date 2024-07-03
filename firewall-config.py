@@ -1,16 +1,19 @@
 import os
 import requests
 from requests.auth import HTTPBasicAuth
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
-# Environment variables for GitHub credentials
+# Environment variables for GitHub and email credentials
 GIT_USERNAME = os.getenv('GIT_USERNAME')
 GIT_TOKEN = os.getenv('GIT_TOKEN')
-
-# Query parameters
+EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
+EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 SEARCH_QUERY = 'firewall config'
 SEARCH_URL = 'https://api.github.com/search/code'
 RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
-DOWNLOAD_DIR = 'downloaded_configs'  # Directory to store downloaded files
+RECIPIENT_EMAIL = 'arien.seghetti@gmail.com'
 
 def search_github(query, per_page=RESULTS_PER_PAGE):
     headers = {
@@ -26,28 +29,45 @@ def search_github(query, per_page=RESULTS_PER_PAGE):
     else:
         raise Exception(f"GitHub API request failed with status code {response.status_code}")
 
-def download_file(repo_url, file_path, download_dir):
-    file_url = f"{repo_url}/raw/main/{file_path}"
-    response = requests.get(file_url)
-    if response.status_code == 200:
-        local_path = os.path.join(download_dir, file_path.replace('/', '_'))
-        os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        with open(local_path, 'wb') as file:
-            file.write(response.content)
-        print(f"Downloaded: {file_url} to {local_path}")
-    else:
-        print(f"Failed to download: {file_url}")
+def send_email(subject, body, to_email, from_email, from_password):
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(from_email, from_password)
+        text = msg.as_string()
+        server.sendmail(from_email, to_email, text)
+        server.quit()
+        print("Email sent successfully")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 def main():
-    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     try:
         results = search_github(SEARCH_QUERY)
         print(f"Total results: {results['total_count']}")
+        urls = []
         for item in results['items']:
             repo_url = item['repository']['html_url']
             file_path = item['path']
-            print(f"Repository: {repo_url}, File: {file_path}")
-            download_file(repo_url, file_path, DOWNLOAD_DIR)
+            file_url = f"{repo_url}/blob/main/{file_path}"
+            urls.append(file_url)
+            print(f"Repository: {repo_url}, File: {file_path}, URL: {file_url}")
+
+        email_body = "\n".join(urls)
+        send_email(
+            subject="Firewall Config URLs",
+            body=email_body,
+            to_email=RECIPIENT_EMAIL,
+            from_email=EMAIL_ADDRESS,
+            from_password=EMAIL_PASSWORD
+        )
     except Exception as e:
         print(f"An error occurred: {e}")
 
