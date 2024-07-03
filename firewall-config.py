@@ -2,7 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import os
 
-GITHUB_USERNAME = os.getenv('GITHUB_USERNAME')
+GIT_USERNAME = os.getenv('GIT_USERNAME')
 GIT_TOKEN = os.getenv('GIT_TOKEN')
 SEARCH_QUERY = 'firewall config'
 SEARCH_URL = 'https://api.github.com/search/code'
@@ -16,7 +16,7 @@ def search_github(query, per_page=RESULTS_PER_PAGE):
         'q': query,
         'per_page': per_page,
     }
-    response = requests.get(SEARCH_URL, headers=headers, params=params, auth=HTTPBasicAuth(GITHUB_USERNAME, GIT_TOKEN))
+    response = requests.get(SEARCH_URL, headers=headers, params=params, auth=HTTPBasicAuth(GIT_USERNAME, GIT_TOKEN))
     if response.status_code == 200:
         return response.json()
     else:
