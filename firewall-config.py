@@ -1,9 +1,12 @@
+
 import os
 import requests
 from requests.auth import HTTPBasicAuth
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 # Environment variables for GitHub and email credentials
 GIT_USERNAME = os.getenv('GIT_USERNAME')
@@ -24,6 +27,7 @@ search_queries = {
 
 SEARCH_URL = 'https://api.github.com/search/code'
 RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
+OUTPUT_FILE = 'firewall_config_urls.txt'
 
 def search_github(query, per_page=RESULTS_PER_PAGE):
     headers = {
@@ -39,13 +43,24 @@ def search_github(query, per_page=RESULTS_PER_PAGE):
     else:
         raise Exception(f"GitHub API request failed with status code {response.status_code}")
 
-def send_email(subject, body, to_email, from_email, from_password):
+def send_email(subject, body, to_email, from_email, from_password, attachment_path):
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
 
     msg.attach(MIMEText(body, 'plain'))
+
+    # Attach the file
+    with open(attachment_path, 'rb') as attachment:
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header(
+            'Content-Disposition',
+            f'attachment; filename= {os.path.basename(attachment_path)}',
+        )
+        msg.attach(part)
 
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -71,13 +86,17 @@ def main():
                 urls.append(file_url)
                 print(f"Vendor: {vendor}, Repository: {repo_url}, File: {file_path}, URL: {file_url}")
 
-        email_body = "\n".join(urls)
+        # Write URLs to a text file
+        with open(OUTPUT_FILE, 'w') as file:
+            file.write("\n".join(urls))
+
         send_email(
             subject="Firewall Config URLs",
-            body=email_body,
+            body="Please find attached the list of firewall config URLs.",
             to_email=RECIPIENT_EMAIL,
             from_email=EMAIL_ADDRESS,
-            from_password=EMAIL_PASSWORD
+            from_password=EMAIL_PASSWORD,
+            attachment_path=OUTPUT_FILE
         )
     except Exception as e:
         print(f"An error occurred: {e}")
