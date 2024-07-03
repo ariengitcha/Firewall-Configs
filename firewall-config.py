@@ -10,10 +10,20 @@ GIT_USERNAME = os.getenv('GIT_USERNAME')
 GIT_TOKEN = os.getenv('GIT_TOKEN')
 EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-SEARCH_QUERY = 'firewall config'
+RECIPIENT_EMAIL = 'arien.seghetti@gmail.com'
+
+# Define search queries for different vendors
+search_queries = {
+    'Fortinet': '"firewall" "FortiOS" extension:conf extension:cfg extension:json',
+    'Palo Alto': '"firewall" "PAN-OS" extension:xml extension:cfg extension:json',
+    'Check Point': '"firewall" "Check Point" extension:cfg extension:json extension:txt extension:csv',
+    'Cisco ASA': '"firewall" "ASA" extension:cfg extension:conf extension:txt',
+    'Cisco Firepower': '"firewall" "Firepower" extension:cfg extension:conf extension:json extension:xml',
+    'Juniper': '"firewall" "JunOS" extension:conf extension:set extension:xml extension:txt'
+}
+
 SEARCH_URL = 'https://api.github.com/search/code'
 RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
-RECIPIENT_EMAIL = 'arien.seghetti@gmail.com'
 
 def search_github(query, per_page=RESULTS_PER_PAGE):
     headers = {
@@ -50,15 +60,16 @@ def send_email(subject, body, to_email, from_email, from_password):
 
 def main():
     try:
-        results = search_github(SEARCH_QUERY)
-        print(f"Total results: {results['total_count']}")
         urls = []
-        for item in results['items']:
-            repo_url = item['repository']['html_url']
-            file_path = item['path']
-            file_url = f"{repo_url}/blob/main/{file_path}"
-            urls.append(file_url)
-            print(f"Repository: {repo_url}, File: {file_path}, URL: {file_url}")
+        for vendor, query in search_queries.items():
+            results = search_github(query)
+            print(f"Total results for {vendor}: {results['total_count']}")
+            for item in results['items']:
+                repo_url = item['repository']['html_url']
+                file_path = item['path']
+                file_url = f"{repo_url}/blob/main/{file_path}"
+                urls.append(file_url)
+                print(f"Vendor: {vendor}, Repository: {repo_url}, File: {file_path}, URL: {file_url}")
 
         email_body = "\n".join(urls)
         send_email(
