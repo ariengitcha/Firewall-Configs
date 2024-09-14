@@ -30,14 +30,15 @@ RESULTS_PER_PAGE = 30  # Maximum allowed by GitHub API
 OUTPUT_FILE = 'firewall_config_urls.txt'
 
 def search_github(query, per_page=RESULTS_PER_PAGE):
-    headers = {
-        'Accept': 'application/vnd.github.v3+json',
-    }
+ headers = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Authorization': f'token {GIT_TOKEN}',
+}
     params = {
         'q': query,
         'per_page': per_page,
     }
-    response = requests.get(SEARCH_URL, headers=headers, params=params, auth=HTTPBasicAuth(GIT_USERNAME, GIT_TOKEN))
+    response = requests.get(SEARCH_URL, headers=headers, params=params)
     if response.status_code == 200:
         return response.json()
     else:
